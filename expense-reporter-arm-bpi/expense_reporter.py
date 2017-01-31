@@ -58,6 +58,11 @@ def formatted_date():
     return datetime.datetime.now().strftime("%d")
 
 
+@app.route("/ping")
+def ping():
+    return "pong"
+
+
 @app.route('/', methods=['GET'])
 def index():
     if auth_required():
