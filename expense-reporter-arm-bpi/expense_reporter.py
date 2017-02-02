@@ -5,7 +5,13 @@ import flask
 import httplib2
 from apiclient import discovery
 from oauth2client import client
+from oauth2client.service_account import ServiceAccountCredentials
 
+oauth_scopes = ['https://www.googleapis.com/auth/spreadsheets',
+                'https://www.googleapis.com/auth/drive']
+
+credentials = ServiceAccountCredentials.from_json_keyfile_name("client_secret.json", oauth_scopes)
+http_auth = credentials.authorize(httplib2.Http())
 app = flask.Flask(__name__)
 
 
@@ -47,13 +53,6 @@ def auth_required():
         flask.session['credentials']).access_token_expired
 
 
-def parse_params():
-    args = flask.request.args
-    if flask.session.pop('redirected', False):
-        args = flask.session.pop('original_args')
-    return args.get('title'), args.get('amount')
-
-
 def formatted_date():
     return datetime.datetime.now().strftime("%d")
 
@@ -65,48 +64,26 @@ def ping():
 
 @app.route('/', methods=['GET'])
 def index():
-    if auth_required():
-        flask.session['original_args'] = flask.request.args
-        flask.session['redirected'] = True
-        return flask.redirect(flask.url_for('oauth2callback'))
-    else:
-        title, amount = parse_params()
+    title = flask.request.args.get("title")
+    amount = flask.request.args.get("amount")
 
-        credentials = client.OAuth2Credentials.from_json(flask.session['credentials'])
-        http_auth = credentials.authorize(httplib2.Http())
-        sheet_service = discovery.build('sheets', 'v4', http=http_auth)
+    sheet_service = discovery.build('sheets', 'v4', http=http_auth)
 
-        first_empty_row = find_first_empty_row(sheet_service=sheet_service)
+    first_empty_row = find_first_empty_row(sheet_service=sheet_service)
 
-        update_sheet_body = dict()
-        update_sheet_body['values'] = [[formatted_date(), title, amount]]
-        _range = Range(Cell(0, first_empty_row), Cell(2, first_empty_row))
+    update_sheet_body = dict()
+    update_sheet_body['values'] = [[formatted_date(), title, amount]]
+    _range = Range(Cell(0, first_empty_row), Cell(2, first_empty_row))
 
-        sheet_resp = sheet_service.spreadsheets().values().update(
-            spreadsheetId="1j9oNEgTJaKpJuwqgQqaBTvZTF0ygMZRbKCvuUandRL8",
-            range=_range.to_range_str(),
-            valueInputOption='RAW',
-            body=update_sheet_body).execute()
+    sheet_resp = sheet_service.spreadsheets().values().update(
+        spreadsheetId="1j9oNEgTJaKpJuwqgQqaBTvZTF0ygMZRbKCvuUandRL8",
+        range=_range.to_range_str(),
+        valueInputOption='RAW',
+        body=update_sheet_body).execute()
 
-        sheet_resp['message'] = "{0} stored as '{1}' in the {2} line.".format(amount, title, first_empty_row)
+    sheet_resp['message'] = "{0} stored as '{1}' in the {2} line.".format(amount, title, first_empty_row)
 
-        return flask.Response(json.dumps(sheet_resp), mimetype="application/json")
-
-
-@app.route('/oauth2callback')
-def oauth2callback():
-    flow = client.flow_from_clientsecrets(
-        'client_secrets.json',
-        scope='https://www.googleapis.com/auth/spreadsheets',
-        redirect_uri=flask.url_for('oauth2callback', _external=True))
-    if 'code' not in flask.request.args:
-        auth_uri = flow.step1_get_authorize_url()
-        return flask.redirect(auth_uri)
-    else:
-        auth_code = flask.request.args.get('code')
-        credentials = flow.step2_exchange(auth_code)
-        flask.session['credentials'] = credentials.to_json()
-        return flask.redirect(flask.url_for('index'))
+    return flask.Response(json.dumps(sheet_resp), mimetype="application/json")
 
 
 if __name__ == '__main__':
