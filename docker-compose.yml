@@ -1,0 +1,25 @@
+version: '2'
+services:
+  nginx:
+    image: "tacsi/nginx"
+    links:
+      - "transmission:transmission.local"
+      - "expense-reporter:expense-reporter.local"
+    ports:
+      - "80:80"
+      - "443:443"
+
+  transmission:
+    image: "tacsi/transmission-arm-bpi"
+    volumes:
+      - /home/bpi/.config/transmission/:/app
+      - /media/cuccok/torrents/:/app/torrents
+    environment:
+      - TRANSMISSION_USER=bpi
+      - TRANSMISSION_PASSWORD=tonb314
+    ports:
+      - "51413:51413/tcp"
+      - "51413:51413/udp"
+
+  expense-reporter:
+    image: "tacsi/expense-reporter"
