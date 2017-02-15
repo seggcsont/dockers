@@ -5,6 +5,7 @@ services:
     links:
       - "transmission:transmission.local"
       - "expense-reporter:expense-reporter.local"
+      - "sms-parser:sms-parser.local"
     ports:
       - "80:80"
       - "443:443"
@@ -23,3 +24,6 @@ services:
 
   expense-reporter:
     image: "tacsi/expense-reporter"
+
+  sms-parser:
+    image: "tacsi/sms-parser-arm-bpi"

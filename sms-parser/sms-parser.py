@@ -3,7 +3,7 @@ import re
 
 from flask import Flask, Response, request
 
-sms_pattern = re.compile(".*POS tranzakci. ([\d ]+).*Hely: (.+)")
+sms_pattern = re.compile(".*POS tranzakci. ([\d ,]+).*Hely: (.+)")
 app = Flask(__name__)
 
 
@@ -12,7 +12,7 @@ def parse_sms(content):
     resp['content'] = content
     match = re.match(sms_pattern, content)
     if match:
-        resp['amount'] = match.group(1).replace(' ', '')
+        resp['amount'] = match.group(1).replace(' ', '').replace(',', '')
         resp['location'] = match.group(2)
     else:
         print("SMS does not match: '%s'" % content)
