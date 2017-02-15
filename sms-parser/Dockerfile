@@ -1,7 +1,7 @@
 FROM yyolk/rpi-archlinuxarm:latest
 
 RUN pacman -Sy python3 python-pip --noconfirm --noprogressbar &&\
-  pip3 install --upgrade Flask &&\
+  pip3 install --upgrade Flask pymongo &&\
   rm -rf /var/cache/pacman/pkg/*
 
 WORKDIR /app/

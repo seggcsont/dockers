@@ -2,9 +2,12 @@ import json
 import re
 
 from flask import Flask, Response, request
+from pymongo import MongoClient, ReturnDocument
 
 sms_pattern = re.compile(".*POS tranzakci. ([\d ]+).*Hely: (.+)")
 app = Flask(__name__)
+mongoc = MongoClient(host="mongodb")
+db = mongoc.home_bot
 
 
 def parse_sms(content):
@@ -24,6 +27,22 @@ def parse():
     assert request.form['content']
     resp = parse_sms(request.form['content'])
     return Response(json.dumps(resp), mimetype="text/plain")
+
+
+@app.route("/alias", methods=["POST"])
+def add_alias():
+    assert request.form['location']
+    assert request.form['alias']
+    updated_doc = db.aliases.find_one_and_update(
+        {'location': request.form['location']},
+        {"$push": {
+            "aliases": request.form['alias']
+        }},
+        upsert=True,
+        return_document=ReturnDocument.AFTER,
+        projection={'_id': False}
+    )
+    return json.dumps(updated_doc), 201
 
 
 if __name__ == '__main__':
