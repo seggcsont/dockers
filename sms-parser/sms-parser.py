@@ -6,7 +6,8 @@ from pymongo import MongoClient, ReturnDocument
 
 sms_pattern = re.compile(".*POS tranzakci. ([\d ]+).*Hely: (.+)")
 app = Flask(__name__)
-mongoc = MongoClient(host="mongodb")
+# mongoc = MongoClient(host="mongodb")
+mongoc = MongoClient()
 db = mongoc.home_bot
 
 
@@ -33,12 +34,22 @@ def parse():
 def add_alias():
     assert request.form['location']
     assert request.form['alias']
+    if (not db.aliases.find_one({'location': request.form['location'],
+                                 'aliases.name': request.form['alias']})):
+        db.aliases.find_one_and_update(
+            {'location': request.form['location']},
+            {"$addToSet": {
+                "aliases": {"name": request.form['alias']}
+            }},
+            upsert=True
+        )
+
     updated_doc = db.aliases.find_one_and_update(
-        {'location': request.form['location']},
-        {"$push": {
-            "aliases": request.form['alias']
+        {'location': request.form['location'],
+         'aliases.name': request.form['alias']},
+        {"$inc": {
+            "aliases.$.used": 1
         }},
-        upsert=True,
         return_document=ReturnDocument.AFTER,
         projection={'_id': False}
     )
