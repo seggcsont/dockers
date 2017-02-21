@@ -83,7 +83,7 @@ def ping():
 @app.route('/', methods=['GET'])
 def index():
     title = flask.request.args.get("title")
-    amount = flask.request.args.get("amount")
+    amount = int(flask.request.args.get("amount"))
 
     if not title or not amount:
         flask.abort(400)
