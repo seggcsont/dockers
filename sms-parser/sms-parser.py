@@ -6,8 +6,8 @@ from pymongo import MongoClient, ReturnDocument
 
 sms_pattern = re.compile(".*POS tranzakci. ([\d ,]+).*Hely: (.+)")
 app = Flask(__name__)
-# mongoc = MongoClient(host="mongodb")
-mongoc = MongoClient()
+mongoc = MongoClient(host="mongodb")
+#mongoc = MongoClient()
 db = mongoc.home_bot
 
 
@@ -19,7 +19,7 @@ def parse_sms(content):
         resp['amount'] = match.group(1).replace(' ', '').replace(',', '')
         resp['location'] = match.group(2)
     else:
-        print("SMS does not match: '%s'" % content)
+        print("SMS does not match: '%s'" % content.encode('utf-8'))
     return resp
 
 
