@@ -1,7 +1,7 @@
 version: '2'
 services:
   nginx:
-    image: "tacsi/nginx"
+    image: "tacsi/nginx-arm-bpi"
     links:
       - "transmission:transmission.local"
       - "expense-reporter:expense-reporter.local"
@@ -23,7 +23,9 @@ services:
       - "51413:51413/udp"
 
   expense-reporter:
-    image: "tacsi/expense-reporter"
+    image: "tacsi/expense-reporter-arm-bpi"
+    volumes:
+      - /home/bpi/client_secret.json:/app/client_secret.json:ro
 
   sms-parser:
     image: "tacsi/sms-parser-arm-bpi"

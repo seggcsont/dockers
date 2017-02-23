@@ -1,8 +1,8 @@
-FROM yyolk/rpi-archlinuxarm:latest
+FROM armhf/alpine
 
-RUN pacman -Sy python3 python-pip --noconfirm --noprogressbar &&\
-  pip3 install --upgrade Flask pymongo &&\
-  rm -rf /var/cache/pacman/pkg/*
+RUN apk update &&\
+    apk --no-cache add python3 &&\
+    pip3 install --upgrade Flask pymongo
 
 WORKDIR /app/
 
