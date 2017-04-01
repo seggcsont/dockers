@@ -10,23 +10,27 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    restart: always
 
   expense-reporter:
     image: "tacsi/expense-reporter-arm-bpi"
     build: ./expense-reporter/
     volumes:
       - /home/bpi/client_secret.json:/app/client_secret.json:ro
+    restart: always
 
   sms-parser:
     image: "tacsi/sms-parser-arm-bpi"
     build: ./sms-parser/
     links:
-      - mongodb
+      - "mongodb:mongodb"
+    restart: always
 
   mongodb:
     image: "ivanmarban/armhf-mongodb"
     volumes:
       - /home/bpi/mongo-data:/var/lib/mongodb
+    restart: always
 
   torrent:
     image: "lsioarmhf/deluge"
@@ -44,3 +48,4 @@ services:
       - PGID=1000
       - TZ=Europe/Budapest
     network_mode: "host"
+    restart: always

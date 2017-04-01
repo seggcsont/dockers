@@ -37,7 +37,7 @@ class Cell:
 
 def find_first_empty_row():
     sheet = get_sheet_service().spreadsheets().get(spreadsheetId=SPREADSHEETID,
-                                                   ranges="A1:C142", includeGridData=True).execute()
+                                                   ranges="A1:C200", includeGridData=True).execute()
     for _index, row in enumerate(sheet['sheets'][0]['data'][0]['rowData']):
         values = row['values']
         if len(values) == 3:
@@ -64,7 +64,7 @@ def get_sheet_service():
 
 def update_sheet(title, amount, row):
     update_sheet_body = dict()
-    update_sheet_body['values'] = [[formatted_date(), title + " (Bot)", amount]]
+    update_sheet_body['values'] = [[formatted_date(), title, amount]]
     _range = Range(Cell(0, row), Cell(2, row))
     sheet_resp = get_sheet_service().spreadsheets().values().update(
         spreadsheetId=SPREADSHEETID,

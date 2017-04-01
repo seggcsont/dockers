@@ -13,11 +13,13 @@ db = mongoc.home_bot
 
 def parse_sms(content):
     resp = dict()
-    resp['content'] = content
     match = re.match(sms_pattern, content)
     if match:
         resp['amount'] = match.group(1).replace(' ', '').replace(',', '')
         resp['location'] = match.group(2)
+        existing = db.aliases.find_one({"location": match.group(2)})
+        if existing:
+            resp['aliases'] = existing['aliases']
     else:
         print("SMS does not match: '%s'" % content.encode('utf-8'))
     return resp
