@@ -4,13 +4,27 @@ services:
     image: "tacsi/nginx-arm-bpi"
     build: ./nginx/
     links:
-      #- "transmission:transmission.local"
+      - "transmission:transmission.local"
       - "expense-reporter:expense-reporter.local"
       - "sms-parser:sms-parser.local"
     ports:
       - "80:80"
       - "443:443"
     restart: always
+
+  transmission:
+    image: "tacsi/transmission-arm-bpi"
+    build: ./transmission/
+    volumes:
+      - /home/bpi/.config/transmission/:/app
+      - /media/cuccok/torrents/:/app/torrents
+    environment:
+      - TRANSMISSION_USER=bpi
+      - TRANSMISSION_PASSWORD=tonb314
+    ports:
+      - "51413:51413/tcp"
+      - "51413:51413/udp"
+      - "9091:9091"
 
   expense-reporter:
     image: "tacsi/expense-reporter-arm-bpi"
@@ -32,20 +46,3 @@ services:
       - /home/bpi/mongo-data:/var/lib/mongodb
     restart: always
 
-  torrent:
-    image: "lsioarmhf/deluge"
-#    ports:
-#      - "8000:80"
-#      - "5000:5000"
-#      - "51413:51413"
-#      - "6881:6881/udp"
-    volumes:
-      - /home/bpi/torrent-config:/config
-      - /media/cuccok/torrents:/downloads
-      - /etc/localtime:/etc/localtime:ro
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Budapest
-    network_mode: "host"
-    restart: always
