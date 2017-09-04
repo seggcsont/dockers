@@ -1,4 +1,5 @@
 import datetime
+import threading
 
 import flask
 import httplib2
@@ -62,7 +63,9 @@ def get_sheet_service():
     return discovery.build('sheets', 'v4', http=http_auth)
 
 
-def update_sheet(title, amount, row):
+def update_sheet(title, amount):
+    row = find_first_empty_row()
+
     update_sheet_body = dict()
     update_sheet_body['values'] = [[formatted_date(), title, amount]]
     _range = Range(Cell(0, row), Cell(2, row))
@@ -88,11 +91,9 @@ def index():
     if not title or not amount:
         flask.abort(400)
 
-    first_empty_row = find_first_empty_row()
+    threading.Thread(target=update_sheet, args=(title, amount)).start()
 
-    sheet_resp = update_sheet(title, amount, first_empty_row)
-
-    return flask.Response(sheet_resp['message'], mimetype="text/plain")
+    return flask.Response('message', mimetype="text/plain")
 
 
 if __name__ == '__main__':
